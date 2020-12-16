@@ -1,6 +1,19 @@
-public class Main {
+import gui.GridView;
+import javafx.application.Application;
+import javafx.stage.Stage;
 
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+public class Main extends Application
+{
+
+    public static void main(String[] args)
+    {
+        launch(args);
+    }
+
+    @Override
+    public void start(final Stage primaryStage) throws Exception
+    {
+        GridView gui = new GridView(primaryStage, 500, 500);
+        gui.show();
     }
 }
