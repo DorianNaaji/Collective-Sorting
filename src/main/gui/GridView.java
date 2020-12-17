@@ -1,20 +1,43 @@
-package gui;
+package main.gui;
 
-import gui.generic.GenericView;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
+import javafx.stage.WindowEvent;
+import main.gui.generic.GenericView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import main.model.Grid;
 
 import java.io.IOException;
 
 public class GridView extends GenericView
 {
-    public GridView(Stage parent, int width, int height) throws IOException
+    private static final int gridViewWidthHeight = 15;
+
+    public GridView(Stage parent, int gridDimensions) throws IOException
     {
-        super(parent, "Collective sorting", "GridView.fxml", width, height, Modality.NONE);
+        super(parent, "Collective sorting", "GridView.fxml", gridDimensions*gridViewWidthHeight, gridDimensions*gridViewWidthHeight, Modality.NONE);
+        this.setOnHiding(onCloseHandler);
     }
 
     public GridViewController getController()
     {
         return  (GridViewController)this.controller;
     }
+
+    public static int getGridViewWidthHeight()
+    {
+        return gridViewWidthHeight;
+    }
+
+    private static final EventHandler<WindowEvent> onCloseHandler = new EventHandler<WindowEvent>()
+    {
+        @Override
+        public void handle(WindowEvent event)
+        {
+            Grid.setIsThreadRunning(false);
+            Platform.exit();
+            System.exit(0);
+        }
+    };
 }

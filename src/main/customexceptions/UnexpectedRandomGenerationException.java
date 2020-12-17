@@ -1,5 +1,9 @@
 package main.customexceptions;
 
-public class UnexpectedRandomGenerationException
+public class UnexpectedRandomGenerationException extends Exception
 {
+    public UnexpectedRandomGenerationException(String message)
+    {
+        super(message);
+    }
 }

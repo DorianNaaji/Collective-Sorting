@@ -13,6 +13,6 @@
             maxWidth="-Infinity"
             minWidth="-Infinity"
             prefHeight="400.0" prefWidth="600.0"
-            fx:controller="gui.GridViewController"
+            fx:controller="main.gui.GridViewController"
             fx:id="mainPane"
 />
