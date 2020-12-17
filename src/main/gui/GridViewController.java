@@ -1,12 +1,13 @@
 package gui;
 
 import javafx.fxml.FXML;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
 public class GridViewController
 {
     @FXML
-    private Pane mainPane;
+    private GridPane mainPane;
 
     @FXML
     public void initialize()
