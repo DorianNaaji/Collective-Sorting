@@ -36,7 +36,6 @@ public class Grid extends Observable implements  Runnable
 
     private Random random;
 
-    //todo doc
     public Grid(int lines, int columns, int nbAgents, int nbItems) throws UnexpectedRandomGenerationException, ParamsNotSetException
     {
         if(!ARE_PARAMS_SET)
@@ -45,12 +44,12 @@ public class Grid extends Observable implements  Runnable
         }
         this.columns = columns;
         this.lines = lines;
-        this.cells = new Cell[lines][columns];
+        this.cells = new Cell[columns][lines];
 
         this.agents = new Agent[nbAgents];
         this.items = new Item[nbItems];
-        this.random = new Random();
 
+        this.random = new Random();
         this.initializeGridState();
     }
 
@@ -191,7 +190,6 @@ public class Grid extends Observable implements  Runnable
         }
     }
 
-
     /**
      * Runs the Grid Model behavior as a thread and notifies the UI thread as soon as there are changes.
      * It then sleeps for {@link #GUI_REFRESH_RATE_IN_MS} milliseconds
@@ -224,7 +222,6 @@ public class Grid extends Observable implements  Runnable
     private void step()
     {
         // FOR EACH AGENT
-
             // moves the agent randomly up to NB_MOVES further, NB_MOVES being a constant in the Agent class. Its value is set in the Main method.
             // agents can only move if there are no other agents on the nearby cells. It tries to go in the 4 availables directions and to
             // make i steps forward, 1 =< i < NB_MOVES. It tries that let's say 100 times (we will/can define a count var for this)
@@ -238,29 +235,34 @@ public class Grid extends Observable implements  Runnable
             // then, computes wether or not the agent should drop an item (if it holds an item) or pick up an item.
             // (and this, for each item type)
 
-
-            // IF AGENT IS ON TOP OF AN ITEM
-                // pickUp = (kPlus / (kPlus + f))²
+            //IF AGENT HOLDS AN ITEM
                 // drop   = (f / (kMinus + f))²
-                //f being a ratio : nearbyCellsThatContainItemOfTypeX/nearbyCells.
-                // a cell is "nearby" when it can be met by the agent in less than NB_MOVES. So, each cell around the agent
-                // by 1 to NB_MOVES distance is a nearby cell.
-
-                // IF AGENT SHOULD DROP
-                    // DROP (if possible)
-                    // OTHERWISE, keep the item and wait for the next step. (do nothing)
-                // END IF
-
-                // IF AGENT SHOULD PICK UP
-                    // PICK UP ONLY IF NOT ALREADY CARRYING AN ITEM
-                // END IF
-            // END IF
-
+                //IF AGENT SHOULD DROP
+                    //IF CURRENT CELL IS EMPTY
+                        // DROP
+                    //ELSE
+                        //OTHERWISE, keep the item and wait for the next step. (do nothing)
+                    //ENDIF
+                //END IF
+            //ELSE IF AGENT IS ON TOP OF AN ITEM (and therefore does not hold an item, because of the first condition)
+                //pickUp = (kPlus / (kPlus + f))²
+                //IF AGENT SHOULD PICK UP
+                    //PICK UP
+                //END IF
+            //END IF
         // END FOR EACH
+
+        //f being a ratio : nearbyCellsThatContainItemOfTypeX/nearbyCells.
+        // a cell is "nearby" when it can be met by the agent in less than NB_MOVES. So, each cell around the agent
+        // by 1 to NB_MOVES distance is a nearby cell.
+
+
 
         for(Agent agent : this.agents)
         {
             agent.moveRandomly();
+            //todo pickup item / drop item
+            // agent.behave() --> behaves = pseudo code from the "if agent is on top of an item" part.
         }
     }
 

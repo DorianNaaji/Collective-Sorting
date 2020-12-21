@@ -1,5 +1,6 @@
 package main;
 
+import javafx.application.Platform;
 import main.customexceptions.PaneNotFoundException;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -22,7 +23,7 @@ public class Main extends Application
     private static final double K_PLUS = 0.1;
     private static final int NB_MOVES = 1; // i
     private static final int AGENT_MEMORY_SIZE = 10; // t characters
-    private static final int GUI_REFRESH_TIME = 15; // refresh rate in milliseconds
+    private static final int GUI_REFRESH_TIME = 5; // refresh rate in milliseconds
 
     public static void main(String[] args)
     {
@@ -48,14 +49,10 @@ public class Main extends Application
             @Override
             public void update(Observable o, Object arg)
             {
-                try
+                Platform.runLater( () ->
                 {
                     wrapper.getGridView().getController().refresh();
-                }
-                catch (PaneNotFoundException e)
-                {
-                    e.printStackTrace();
-                }
+                });
             }
         };
 

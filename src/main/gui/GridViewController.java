@@ -76,21 +76,18 @@ public class GridViewController
         }
     }
 
-    //todo : make agents appear on top of everything.
-
     /**
      * displays the grid as seen by the user, for each new state. It is called when the model is refreshed, in the Main class.
-     * @throws PaneNotFoundException
      */
-    public void refresh() throws PaneNotFoundException
+    public void refresh()
     {
-        for(int y = 0; y < this.gridModel.getLines(); y++)
+        for(int line = 0; line < this.gridModel.getLines(); line++)
         {
-            for(int x = 0; x < this.gridModel.getColumns(); x++)
+            for(int column = 0; column < this.gridModel.getColumns(); column++)
             {
-                CellContent current = (this.gridModel.getCells()[y][x].hasContent()) ? this.gridModel.getCells()[y][x].getCellContent() : null;
+                CellContent current = (this.gridModel.getCells()[line][column].hasContent()) ? this.gridModel.getCells()[line][column].getCellContent() : null;
                 // if the cell is empty, it will be white
-                Pane p = this.gridPaneArray[x][y];
+                Pane p = this.gridPaneArray[line][column];
                 if(current == null)
                 {
                     p.setStyle("-fx-background-color: #ffffff");
@@ -115,7 +112,7 @@ public class GridViewController
                 }
 
                 // if it contains an agent on top of the item, it will be displayed on top prior.
-                if(current != null && this.gridModel.getCells()[y][x].hasAgentOnTop())
+                if(current != null && this.gridModel.getCells()[line][column].hasAgentOnTop())
                 {
                     p.setStyle("-fx-background-color: #ff0004");
                 }

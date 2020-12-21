@@ -117,6 +117,8 @@ public class Agent extends CellContent
             this.removeFromOldPosition();
             this.line = newLine;
             this.column = newColumn;
+            //todo
+            //this.refreshMemory();
             this.environment.getCells()[newLine][newColumn].setCellContent(this);
         }
         // the new cell contains an item. we must place the agent on top.
@@ -133,11 +135,13 @@ public class Agent extends CellContent
                 this.removeFromOldPosition();
                 this.line = newLine;
                 this.column = newColumn;
+                //todo
+                //this.refreshMemory();
                 this.environment.getCells()[newLine][newColumn].placeAgentOnTop(this);
             }
         }
         // an agent is located on newLine and newColumn. We try again another position.
-        else
+        else if(this.environment.getCells()[newLine][newColumn].getCellContent().getClass().equals(Agent.class))
         {
             this.moveRandomly();
         }
