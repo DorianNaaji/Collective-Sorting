@@ -8,6 +8,9 @@ import main.model.Grid;
 
 import java.io.IOException;
 
+/**
+ * Wraps the GUI and the model into one class, so that it can be accessible from the Main class.
+ */
 public class GridWrapper
 {
     private GridView gridView;

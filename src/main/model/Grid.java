@@ -5,6 +5,15 @@ import main.customexceptions.UnexpectedRandomGenerationException;
 
 import java.util.*;
 
+
+/**
+ * The grid. It is the main class of our program.
+ * Its content is displayed on the gui each {@link #GUI_REFRESH_RATE_IN_MS} millis.
+ * It can be started as a thread so that it doesnt interfere with the UI thread.
+ * It is observable so that we can notify the UI as soon as changes are made.
+ * It handles all the operations that are described in the Collective Sorting Article
+ * ("THE DYNAMICS OF COLLECTIVE SORTING, ROBOT-LIKE ANTS AND ANT-LIKE ROBOTS")
+ */
 public class Grid extends Observable implements  Runnable
 {
     // modify this if you need more dispersion of the items in the grid.
@@ -12,7 +21,7 @@ public class Grid extends Observable implements  Runnable
 
     private static double K_MINUS = 0;
     private static double K_PLUS = 0;
-    private static int GUI_REFRESH_TIME;
+    private static int GUI_REFRESH_RATE_IN_MS = 0;
     private static boolean ARE_PARAMS_SET = false;
 
     private static boolean isThreadRunning = false;
@@ -126,16 +135,23 @@ public class Grid extends Observable implements  Runnable
                 }
             }
         }
+        this.initializeRemainingCellsWithEmptyContent();
     }
 
+    /**
+     * Private helper for the {@link #initializeGridState()} method.
+     */
     private boolean placeAnAgent(int line, int column, int arrayIndex) throws ParamsNotSetException
     {
-        Agent a = new Agent();
+        Agent a = new Agent(this, line, column);
         Cell c = new Cell(a);
         this.agents[arrayIndex] = a;
         return this.placeSomethingOnTheGrid(line, column, c);
     }
 
+    /**
+     * Private helper for the {@link #initializeGridState()} method.
+     */
     private boolean placeAnItem(int line, int column, int arrayIndex, ItemType itemType)
     {
         Item i = new Item(itemType);
@@ -144,6 +160,10 @@ public class Grid extends Observable implements  Runnable
         return this.placeSomethingOnTheGrid(line, column, c);
     }
 
+    /**
+     * Private helper for both the {@link #placeAnAgent(int, int, int)} and {@link #placeAnItem(int, int, int, ItemType)}
+     * methods.
+     */
     private boolean placeSomethingOnTheGrid(int line, int column, Cell cell)
     {
         if(this.cells[line][column] == null)
@@ -154,6 +174,93 @@ public class Grid extends Observable implements  Runnable
         else
         {
             return false;
+        }
+    }
+
+    private void initializeRemainingCellsWithEmptyContent()
+    {
+        for(int i = 0; i < this.lines; i++)
+        {
+            for (int j = 0; j < this.columns; j++)
+            {
+                if(this.getCells()[i][j] == null)
+                {
+                    this.getCells()[i][j] = new Cell();
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Runs the Grid Model behavior as a thread and notifies the UI thread as soon as there are changes.
+     * It then sleeps for {@link #GUI_REFRESH_RATE_IN_MS} milliseconds
+     */
+    @Override
+    public void run()
+    {
+        isThreadRunning = true;
+
+        while(isThreadRunning)
+        {
+            this.step();
+            setChanged();
+            notifyObservers();
+            // waits before refreshing, so that the user can see what's going on
+            try
+            {
+                Thread.sleep(GUI_REFRESH_RATE_IN_MS);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * makes one iteration of the algorithm, i.e. moves the agent and makes them do their decisions.
+     */
+    private void step()
+    {
+        // FOR EACH AGENT
+
+            // moves the agent randomly up to NB_MOVES further, NB_MOVES being a constant in the Agent class. Its value is set in the Main method.
+            // agents can only move if there are no other agents on the nearby cells. It tries to go in the 4 availables directions and to
+            // make i steps forward, 1 =< i < NB_MOVES. It tries that let's say 100 times (we will/can define a count var for this)
+            // and if it cannot move (because all attempts would have moved the agent on a cell where an agent is already is),
+            // the agent stays still.
+
+            // IF IT HAS MOVED
+                // after that the agent has moved, the current method refreshes the agent memory.
+            // END IF
+
+            // then, computes wether or not the agent should drop an item (if it holds an item) or pick up an item.
+            // (and this, for each item type)
+
+
+            // IF AGENT IS ON TOP OF AN ITEM
+                // pickUp = (kPlus / (kPlus + f))²
+                // drop   = (f / (kMinus + f))²
+                //f being a ratio : nearbyCellsThatContainItemOfTypeX/nearbyCells.
+                // a cell is "nearby" when it can be met by the agent in less than NB_MOVES. So, each cell around the agent
+                // by 1 to NB_MOVES distance is a nearby cell.
+
+                // IF AGENT SHOULD DROP
+                    // DROP (if possible)
+                    // OTHERWISE, keep the item and wait for the next step. (do nothing)
+                // END IF
+
+                // IF AGENT SHOULD PICK UP
+                    // PICK UP ONLY IF NOT ALREADY CARRYING AN ITEM
+                // END IF
+            // END IF
+
+        // END FOR EACH
+
+        for(Agent agent : this.agents)
+        {
+            agent.moveRandomly();
         }
     }
 
@@ -193,34 +300,8 @@ public class Grid extends Observable implements  Runnable
         {
             K_MINUS = kMinus;
             K_PLUS = kPlus;
-            GUI_REFRESH_TIME = guiRefreshTime;
+            GUI_REFRESH_RATE_IN_MS = guiRefreshTime;
             ARE_PARAMS_SET = true;
-        }
-    }
-
-    /**
-     * Runs the Grid Model behavior as a thread and notifies the UI thread as soon as there are changes.
-     * It then sleeps for {@link #GUI_REFRESH_TIME} milliseconds
-     */
-    @Override
-    public void run()
-    {
-        isThreadRunning = true;
-
-        while(isThreadRunning)
-        {
-            //do anything (do an iteration of the grid model)
-            setChanged();
-            notifyObservers();
-            // waits before refreshing, so that the user can see what's going on
-            try
-            {
-                Thread.sleep(GUI_REFRESH_TIME);
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
         }
     }
 }
