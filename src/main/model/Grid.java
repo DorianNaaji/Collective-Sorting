@@ -2,6 +2,7 @@ package main.model;
 
 import main.customexceptions.ParamsNotSetException;
 import main.customexceptions.UnexpectedRandomGenerationException;
+import main.customexceptions.WrongParametersException;
 
 import java.util.*;
 
@@ -201,9 +202,17 @@ public class Grid extends Observable implements  Runnable
 
         while(isThreadRunning)
         {
-            this.step();
-            setChanged();
-            notifyObservers();
+            try
+            {
+                this.step();
+                setChanged();
+                notifyObservers();
+            }
+            catch (WrongParametersException e)
+            {
+                e.printStackTrace();
+            }
+
             // waits before refreshing, so that the user can see what's going on
             try
             {
@@ -219,52 +228,86 @@ public class Grid extends Observable implements  Runnable
     /**
      * makes one iteration of the algorithm, i.e. moves the agent and makes them do their decisions.
      */
-    private void step()
+    private void step() throws WrongParametersException
     {
-        // FOR EACH AGENT
-            // moves the agent randomly up to NB_MOVES further, NB_MOVES being a constant in the Agent class. Its value is set in the Main method.
-            // agents can only move if there are no other agents on the nearby cells. It tries to go in the 4 availables directions and to
-            // make i steps forward, 1 =< i < NB_MOVES. It tries that let's say 100 times (we will/can define a count var for this)
-            // and if it cannot move (because all attempts would have moved the agent on a cell where an agent is already is),
-            // the agent stays still.
-
-            // IF IT HAS MOVED
-                // after that the agent has moved, the current method refreshes the agent memory.
-            // END IF
-
-            // then, computes wether or not the agent should drop an item (if it holds an item) or pick up an item.
-            // (and this, for each item type)
-
-            //IF AGENT HOLDS AN ITEM
-                // drop   = (f / (kMinus + f))²
-                //IF AGENT SHOULD DROP
-                    //IF CURRENT CELL IS EMPTY
-                        // DROP
-                    //ELSE
-                        //OTHERWISE, keep the item and wait for the next step. (do nothing)
-                    //ENDIF
-                //END IF
-            //ELSE IF AGENT IS ON TOP OF AN ITEM (and therefore does not hold an item, because of the first condition)
-                //pickUp = (kPlus / (kPlus + f))²
-                //IF AGENT SHOULD PICK UP
-                    //PICK UP
-                //END IF
-            //END IF
-        // END FOR EACH
-
-        //f being a ratio : nearbyCellsThatContainItemOfTypeX/nearbyCells.
-        // a cell is "nearby" when it can be met by the agent in less than NB_MOVES. So, each cell around the agent
-        // by 1 to NB_MOVES distance is a nearby cell.
-
-
-
         for(Agent agent : this.agents)
         {
             agent.moveRandomly();
-            //todo pickup item / drop item
-            // agent.behave() --> behaves = pseudo code from the "if agent is on top of an item" part.
+            agent.behave();
         }
     }
+
+    /**
+     * gets x nearby cells at pos (line, column) in four cardinal directions.
+     *
+     * i.e returns all the cells in a cross located around (line, column) :
+     *
+     *                |
+     *                |
+     *                |
+     *                |
+     *            ----o----
+     *                |
+     *                |
+     *                |
+     *                |
+     *
+     *      (o being the (line, column) pos)
+     *
+     * @param x
+     * @param line
+     * @param column
+     */
+    public List<Cell> getxNearbyCells(int x, int line, int column)
+    {
+        List<Cell>  nearbyCells = new ArrayList<>();
+        Direction[] directions = Direction.values();
+
+        for(Direction dir : directions)
+        {
+            for(int i = 1; i <= x; i++)
+            {
+                int newLine = line;
+                int newColumn = column;
+                switch(dir)
+                {
+                    case NORTH:
+                        newLine-=i;
+                        break;
+                    case EAST:
+                        newColumn+=i;
+                        break;
+                    case SOUTH:
+                        newLine+=i;
+                        break;
+                    case WEST:
+                        newColumn-=i;
+                        break;
+                }
+                if(this.isLineInBounds(newLine) && this.isColumnInBounds(newColumn))
+                {
+                    nearbyCells.add(this.cells[newLine][newColumn]);
+                }
+            }
+        }
+        return nearbyCells;
+    }
+
+    private boolean isColumnInBounds(int column)
+    {
+        return  (column >= 0 && column < this.getColumns());
+    }
+
+    private boolean isLineInBounds(int line)
+    {
+        return (line >= 0 && line < this.getLines());
+    }
+
+
+//    private void getxNearbyCellsInGivenDirection(int x, int line, int column, Direction direction)
+//    {
+//
+//    }
 
     public int getColumns()
     {
@@ -289,6 +332,16 @@ public class Grid extends Observable implements  Runnable
     public Cell[][] getCells()
     {
         return cells;
+    }
+
+    public static double getkMinus()
+    {
+        return K_MINUS;
+    }
+
+    public static double getkPlus()
+    {
+        return K_PLUS;
     }
 
     public static void setIsThreadRunning(boolean isThreadRunning)

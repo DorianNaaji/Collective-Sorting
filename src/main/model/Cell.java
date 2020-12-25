@@ -31,6 +31,21 @@ public class Cell
         return false;
     }
 
+    public boolean isCellContentAnItem()
+    {
+        return this.cellContent.getClass().equals(Item.class);
+    }
+
+    public boolean isCellContentAnAgent()
+    {
+        return this.cellContent.getClass().equals(Agent.class);
+    }
+
+    public boolean hasNoItemPlacedOntoIt()
+    {
+        return this.cellContent.getClass() != Item.class;
+    }
+
     public void removeAgentFromTop()
     {
         this.agentOnTop = null;

@@ -1,7 +1,10 @@
 package main.model;
 
+import main.utils.Utils;
 import main.customexceptions.ParamsNotSetException;
+import main.customexceptions.WrongParametersException;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -14,11 +17,13 @@ public class Agent extends CellContent
     private static boolean ARE_PARAMS_SET = false;
 
     private Grid environment;
-    private Item[] memory;
+    private Character[] memory;
     private Random random;
     // the agents coordinates
     private int line;
     private int column;
+    private boolean isHoldingAnItem;
+    private Item holding;
 
 
     public Agent(Grid environment, int line, int column) throws ParamsNotSetException
@@ -28,9 +33,11 @@ public class Agent extends CellContent
             throw new ParamsNotSetException("Please set the params (SET_PARAMS method) before creating a new instance.");
         }
         this.environment = environment;
-        this.memory = new Item[AGENT_MEMORY_SIZE];
+        this.memory = new Character[AGENT_MEMORY_SIZE];
         this.line = line;
         this.column = column;
+        this.isHoldingAnItem = false;
+        this.holding = null;
         this.random = new Random();
     }
 
@@ -44,7 +51,7 @@ public class Agent extends CellContent
         }
     }
 
-    public void moveRandomly()
+    public void moveRandomly() throws WrongParametersException
     {
         // random step
         int i = this.random.nextInt(Agent.NB_MOVES + 1);
@@ -109,7 +116,7 @@ public class Agent extends CellContent
         }
     }
 
-    private void makeMove(int newLine, int newColumn)
+    private void makeMove(int newLine, int newColumn) throws WrongParametersException
     {
         // the new cell is empty. we just move onto it.
         if(!this.environment.getCells()[newLine][newColumn].hasContent())
@@ -117,12 +124,11 @@ public class Agent extends CellContent
             this.removeFromOldPosition();
             this.line = newLine;
             this.column = newColumn;
-            //todo
-            //this.refreshMemory();
+            this.refreshMemory();
             this.environment.getCells()[newLine][newColumn].setCellContent(this);
         }
         // the new cell contains an item. we must place the agent on top.
-        else if(this.environment.getCells()[newLine][newColumn].getCellContent().getClass().equals(Item.class))
+        else if(this.environment.getCells()[newLine][newColumn].isCellContentAnItem())
         {
             // if cell does already have an agent on top, we try again.
             if(this.environment.getCells()[newLine][newColumn].hasAgentOnTop())
@@ -135,13 +141,12 @@ public class Agent extends CellContent
                 this.removeFromOldPosition();
                 this.line = newLine;
                 this.column = newColumn;
-                //todo
-                //this.refreshMemory();
+                this.refreshMemory();
                 this.environment.getCells()[newLine][newColumn].placeAgentOnTop(this);
             }
         }
         // an agent is located on newLine and newColumn. We try again another position.
-        else if(this.environment.getCells()[newLine][newColumn].getCellContent().getClass().equals(Agent.class))
+        else if(this.environment.getCells()[newLine][newColumn].isCellContentAnAgent())
         {
             this.moveRandomly();
         }
@@ -154,13 +159,92 @@ public class Agent extends CellContent
         {
             System.out.println();
         }
-        if(currentCell.getCellContent().getClass().equals(Agent.class))
+        if(currentCell.isCellContentAnAgent())
         {
             currentCell.removeContent();
         }
-        else if(currentCell.getCellContent().getClass().equals(Item.class))
+        else if(currentCell.isCellContentAnItem())
         {
             currentCell.removeAgentFromTop();
         }
+    }
+
+    private void refreshMemory() throws WrongParametersException
+    {
+        Cell currentCell = this.environment.getCells()[this.line][this.column];
+        char toPush = '0';
+        if(currentCell.hasContent())
+        {
+            if(currentCell.isCellContentAnItem())
+            {
+                Item content = (Item)currentCell.getCellContent();
+                toPush = content.getItemType().equals(ItemType.A) ? 'A' : 'B';
+            }
+        }
+        Utils.push(this.memory, toPush);
+    }
+
+    public void behave()
+    {
+        Cell current = this.environment.getCells()[this.line][this.column];
+        //drop
+        if(this.isHoldingAnItem)
+        {
+            double probaDrop = this.computeDropProbability();
+            if(this.random.nextDouble() <= probaDrop)
+            {
+                if(current.hasNoItemPlacedOntoIt())
+                {
+                    current.placeAgentOnTop(this);
+                    current.setCellContent(this.holding);
+                    this.isHoldingAnItem = false;
+                }
+            }
+        }
+        //pickup
+        else if(current.isCellContentAnItem())
+        {
+            double probaPick = this.computePickUpProbability(((Item)current.getCellContent()).getItemType());
+            if(this.random.nextDouble() <= probaPick)
+            {
+                this.holding = (Item)current.getCellContent();
+                current.setCellContent(this);
+                current.removeAgentFromTop();
+                this.isHoldingAnItem = true;
+            }
+        }
+    }
+
+    private double computeDropProbability()
+    {
+        List<Cell> nearbyCells = this.environment.getxNearbyCells(Agent.NB_MOVES, this.line, this.column);
+        double cellsThatContainItemsOfHoldingTypeItem = 0;
+
+        for(Cell c : nearbyCells)
+        {
+            if(c.hasContent() && c.isCellContentAnItem() && ((Item)c.getCellContent()).getItemType().equals(this.holding.getItemType()))
+            {
+                cellsThatContainItemsOfHoldingTypeItem++;
+            }
+        }
+        double f = cellsThatContainItemsOfHoldingTypeItem/nearbyCells.size();
+        return Math.pow(f/(Grid.getkMinus() + f), 2);
+    }
+
+    //todo :
+    private double computePickUpProbability(ItemType itemType)
+    {
+        List<Cell> nearbyCells = this.environment.getxNearbyCells(Agent.NB_MOVES, this.line, this.column);
+        double occupiedCells = 0;
+
+        for(Cell c : nearbyCells)
+        {
+            if(c.hasContent() && c.isCellContentAnItem())
+            {
+                occupiedCells++;
+            }
+        }
+        double f = occupiedCells/nearbyCells.size();
+        return Math.pow( Grid.getkPlus()/(Grid.getkPlus() + f), 2);
     }
 }

@@ -13,7 +13,7 @@ import java.util.Observer;
 /**
  * Application entry point.
  */
-public class Main extends Application
+public final class Main extends Application
 {
     /* parameters. Set them here in order to change the application behavior. */
     private static final int GRID_DIM = 50;
