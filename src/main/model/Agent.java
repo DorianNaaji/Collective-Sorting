@@ -106,11 +106,13 @@ public class Agent extends CellContent
 
         // try another random direction. agent can atleast move in 2 directions in the grid (if it is in one of the grid angles).
         // so this recursive call won't force the app to stick in here.
-        if(wontBeAbleToMoveInGivenDirection)
-        {
-            this.moveRandomly();
-        }
-        else if(canMove)
+        // edit : well actually the app can be stuck in that recursive calls in some cases (too much agents arounds)
+        // todo : recursion has to be fixed, otherwise it may cause a stack over flow error (if no move is possible)
+//        if(wontBeAbleToMoveInGivenDirection)
+//        {
+//         //   this.moveRandomly();
+//        }
+        /*else*/ if(canMove)
         {
             this.makeMove(newLine, newColumn);
         }
@@ -130,12 +132,14 @@ public class Agent extends CellContent
         // the new cell contains an item. we must place the agent on top.
         else if(this.environment.getCells()[newLine][newColumn].isCellContentAnItem())
         {
+            // todo : recursion has to be fixed, otherwise it may cause a stack over flow error (if no move is possible)
             // if cell does already have an agent on top, we try again.
-            if(this.environment.getCells()[newLine][newColumn].hasAgentOnTop())
-            {
-                this.moveRandomly();
-            }
-            else
+//            if(this.environment.getCells()[newLine][newColumn].hasAgentOnTop())
+//            {
+////                this.moveRandomly();
+//            }
+            //else
+            if(!this.environment.getCells()[newLine][newColumn].hasAgentOnTop())
             {
                 // moves
                 this.removeFromOldPosition();
@@ -146,10 +150,11 @@ public class Agent extends CellContent
             }
         }
         // an agent is located on newLine and newColumn. We try again another position.
-        else if(this.environment.getCells()[newLine][newColumn].isCellContentAnAgent())
-        {
-            this.moveRandomly();
-        }
+        // todo : recursion has to be fixed, otherwise it may cause a stack over flow error (if no move is possible)
+//        else if(this.environment.getCells()[newLine][newColumn].isCellContentAnAgent())
+//        {
+//            //this.moveRandomly();
+//        }
     }
 
     private void removeFromOldPosition()
@@ -190,7 +195,7 @@ public class Agent extends CellContent
         //drop
         if(this.isHoldingAnItem)
         {
-            double probaDrop = this.computeDropProbability();
+            double probaDrop = this.compute_f(this.holding.getItemType(), false);
             if(this.random.nextDouble() <= probaDrop)
             {
                 if(current.hasNoItemPlacedOntoIt())
@@ -204,7 +209,7 @@ public class Agent extends CellContent
         //pickup
         else if(current.isCellContentAnItem())
         {
-            double probaPick = this.computePickUpProbability(((Item)current.getCellContent()).getItemType());
+            double probaPick = this.compute_f(((Item)current.getCellContent()).getItemType(), true);
             if(this.random.nextDouble() <= probaPick)
             {
                 this.holding = (Item)current.getCellContent();
@@ -215,36 +220,26 @@ public class Agent extends CellContent
         }
     }
 
-    private double computeDropProbability()
+    private double compute_f(ItemType itemType, boolean isPickUp)
     {
         List<Cell> nearbyCells = this.environment.getxNearbyCells(Agent.NB_MOVES, this.line, this.column);
-        double cellsThatContainItemsOfHoldingTypeItem = 0;
+        double cellsThatContainItemsOfGivenType = 0;
 
         for(Cell c : nearbyCells)
         {
-            if(c.hasContent() && c.isCellContentAnItem() && ((Item)c.getCellContent()).getItemType().equals(this.holding.getItemType()))
+            if(c.hasContent() && c.isCellContentAnItem() && ((Item)c.getCellContent()).getItemType().equals(itemType))
             {
-                cellsThatContainItemsOfHoldingTypeItem++;
+                cellsThatContainItemsOfGivenType++;
             }
         }
-        double f = cellsThatContainItemsOfHoldingTypeItem/nearbyCells.size();
-        return Math.pow(f/(Grid.getkMinus() + f), 2);
-    }
-
-    //todo :
-    private double computePickUpProbability(ItemType itemType)
-    {
-        List<Cell> nearbyCells = this.environment.getxNearbyCells(Agent.NB_MOVES, this.line, this.column);
-        double occupiedCells = 0;
-
-        for(Cell c : nearbyCells)
+        double f = cellsThatContainItemsOfGivenType/nearbyCells.size();
+        if(isPickUp)
         {
-            if(c.hasContent() && c.isCellContentAnItem())
-            {
-                occupiedCells++;
-            }
+            return Math.pow( Grid.getkPlus()/(Grid.getkPlus() + f), 2);
         }
-        double f = occupiedCells/nearbyCells.size();
-        return Math.pow( Grid.getkPlus()/(Grid.getkPlus() + f), 2);
+        else
+        {
+            return Math.pow(f/(Grid.getkMinus() + f), 2);
+        }
     }
 }

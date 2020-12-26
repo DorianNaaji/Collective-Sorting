@@ -14,7 +14,7 @@ class GridTest
     @Test
     void getxNearbyCells() throws ParamsNotSetException, UnexpectedRandomGenerationException
     {
-        Grid.SET_PARAMS(0.3, 0.5, 60);
+        Grid.SET_PARAMS(0.3, 0.5, 60, 0 ,false);
         Grid g = new Grid(50, 50, 0, 0);
         List<Cell> nearbyCells = g.getxNearbyCells(5, 25, 25);
         assertEquals(5*4, nearbyCells.size());

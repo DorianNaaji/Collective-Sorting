@@ -19,6 +19,9 @@ public class Grid extends Observable implements  Runnable
 {
     // modify this if you need more dispersion of the items in the grid.
     private static int INITIALIZATION_RANDOM_BOUND = 100;
+    private static int ITERATIONS = 0;
+    private static int MAX_ITER = 0;
+    private static boolean STOP_AFTER_MAX_ITER = false;
 
     private static double K_MINUS = 0;
     private static double K_PLUS = 0;
@@ -207,6 +210,11 @@ public class Grid extends Observable implements  Runnable
                 this.step();
                 setChanged();
                 notifyObservers();
+                Grid.ITERATIONS++;
+                if(Grid.ITERATIONS%10000 == 0)
+                {
+                    System.out.println("Itérations : " + Grid.ITERATIONS);
+                }
             }
             catch (WrongParametersException e)
             {
@@ -214,14 +222,33 @@ public class Grid extends Observable implements  Runnable
             }
 
             // waits before refreshing, so that the user can see what's going on
-            try
+            if(GUI_REFRESH_RATE_IN_MS == 0)
             {
-                Thread.sleep(GUI_REFRESH_RATE_IN_MS);
+                if(Grid.ITERATIONS%100 == 0)
+                {
+                    Grid.sleep(5);
+                }
+                else
+                {
+                    Grid.sleep(GUI_REFRESH_RATE_IN_MS);
+                }
             }
-            catch (InterruptedException e)
+            else
             {
-                e.printStackTrace();
+                Grid.sleep(GUI_REFRESH_RATE_IN_MS);
             }
+        }
+    }
+
+    private static final void sleep(int ms)
+    {
+        try
+        {
+            Thread.sleep(ms);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
         }
     }
 
@@ -304,11 +331,6 @@ public class Grid extends Observable implements  Runnable
     }
 
 
-//    private void getxNearbyCellsInGivenDirection(int x, int line, int column, Direction direction)
-//    {
-//
-//    }
-
     public int getColumns()
     {
         return columns;
@@ -349,13 +371,15 @@ public class Grid extends Observable implements  Runnable
         Grid.isThreadRunning = isThreadRunning;
     }
 
-    public static void SET_PARAMS(double kMinus, double kPlus, int guiRefreshTime)
+    public static void SET_PARAMS(double kMinus, double kPlus, int guiRefreshTime, int maxIter, boolean stopAfterMaxIter)
     {
         if(!ARE_PARAMS_SET)
         {
             K_MINUS = kMinus;
             K_PLUS = kPlus;
             GUI_REFRESH_RATE_IN_MS = guiRefreshTime;
+            MAX_ITER = maxIter;
+            STOP_AFTER_MAX_ITER = stopAfterMaxIter;
             ARE_PARAMS_SET = true;
         }
     }

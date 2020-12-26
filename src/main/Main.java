@@ -19,11 +19,14 @@ public final class Main extends Application
     private static final int GRID_DIM = 50;
     private static final int AGENTS = 20;
     private static final int ITEMS = 400;
-    private static final double K_MINUS = 0.3;
-    private static final double K_PLUS = 0.1;
-    private static final int NB_MOVES = 1; // i
+    private static final double K_PLUS = 0.1; // pickup -> 0.6
+    private static final double K_MINUS = 0.3; // drop
+    private static final int NB_MOVES = 5; // i
     private static final int AGENT_MEMORY_SIZE = 10; // t characters
-    private static final int GUI_REFRESH_TIME = 5; // refresh rate in milliseconds
+    private static final int GUI_REFRESH_TIME = 0; // refresh rate in milliseconds
+
+    private static final int MAX_ITER = 1000000;
+    private static final boolean STOP_AFTER_MAX_ITER = false;
 
     public static void main(String[] args)
     {
@@ -40,7 +43,7 @@ public final class Main extends Application
     public void start(final Stage primaryStage) throws Exception
     {
         Agent.SET_PARAMS(NB_MOVES, AGENT_MEMORY_SIZE);
-        Grid.SET_PARAMS(K_MINUS, K_PLUS, GUI_REFRESH_TIME);
+        Grid.SET_PARAMS(K_MINUS, K_PLUS, GUI_REFRESH_TIME, MAX_ITER, STOP_AFTER_MAX_ITER);
         GridWrapper wrapper = new GridWrapper(primaryStage, GRID_DIM, AGENTS, ITEMS);
         wrapper.getGridView().show();
 
