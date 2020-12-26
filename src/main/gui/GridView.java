@@ -14,6 +14,12 @@ public class GridView extends GenericView
 {
     private static final int gridViewWidthHeight = 15;
 
+    /**
+     * Default gridview constructor.
+     * @param parent the main stage.
+     * @param gridDimensions the model grid dimensions. each cell will be 15px long/large.
+     * @throws IOException
+     */
     public GridView(Stage parent, int gridDimensions) throws IOException
     {
         super(parent, "Collective sorting", "GridView.fxml", gridDimensions*gridViewWidthHeight, gridDimensions*gridViewWidthHeight, Modality.NONE);
@@ -30,6 +36,9 @@ public class GridView extends GenericView
         return gridViewWidthHeight;
     }
 
+    /**
+     * Event handler that will stop the business logic thread when exit button is pressed.
+     */
     private static final EventHandler<WindowEvent> onCloseHandler = new EventHandler<WindowEvent>()
     {
         @Override

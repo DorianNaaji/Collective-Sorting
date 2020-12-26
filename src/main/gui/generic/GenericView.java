@@ -18,7 +18,7 @@ public abstract class GenericView extends Stage
     protected Object controller;
 
     /**
-     * Constructeur d'une Window.
+     * Window (frame) constructor.
      * @param parent parent window (stage)
      * @param title window title
      * @param fxmlResource the associated fxml resource
