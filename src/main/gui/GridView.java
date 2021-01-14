@@ -3,6 +3,7 @@ package main.gui;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.stage.WindowEvent;
+import main.Main;
 import main.gui.generic.GenericView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -44,9 +45,7 @@ public class GridView extends GenericView
         @Override
         public void handle(WindowEvent event)
         {
-            Grid.setIsThreadRunning(false);
-            Platform.exit();
-            System.exit(0);
+            Main.exit();
         }
     };
 }

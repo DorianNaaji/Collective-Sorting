@@ -1,5 +1,7 @@
 package main.model;
 
+import javafx.application.Platform;
+import main.Main;
 import main.customexceptions.ParamsNotSetException;
 import main.customexceptions.UnexpectedRandomGenerationException;
 import main.customexceptions.WrongParametersException;
@@ -236,6 +238,13 @@ public class Grid extends Observable implements  Runnable
             else
             {
                 Grid.sleep(GUI_REFRESH_RATE_IN_MS);
+            }
+
+            if(Grid.STOP_AFTER_MAX_ITER && Grid.ITERATIONS >= MAX_ITER)
+            {
+                Main.printExecutionTime();
+                // freeze when max iter is reached. other behavior can be done but for now, that will be fine
+                while(true){ }
             }
         }
     }

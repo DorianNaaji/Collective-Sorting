@@ -4,6 +4,7 @@ import main.utils.Utils;
 import main.customexceptions.ParamsNotSetException;
 import main.customexceptions.WrongParametersException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -14,6 +15,8 @@ public class Agent extends CellContent
 {
     private static int NB_MOVES = 0;
     private static int AGENT_MEMORY_SIZE = 0;
+    private static boolean USE_ERROR = false;
+    private static double ERROR_RATE =  0;
     private static boolean ARE_PARAMS_SET = false;
 
     private Grid environment;
@@ -41,12 +44,14 @@ public class Agent extends CellContent
         this.random = new Random();
     }
 
-    public static void SET_PARAMS(int nbDeplacements, int agentMemorySize)
+    public static void SET_PARAMS(int nbDeplacements, int agentMemorySize, boolean useError, double errorRate)
     {
         if(!ARE_PARAMS_SET)
         {
             NB_MOVES = nbDeplacements;
             AGENT_MEMORY_SIZE = agentMemorySize;
+            USE_ERROR = useError;
+            ERROR_RATE = errorRate;
             ARE_PARAMS_SET = true;
         }
     }
@@ -103,16 +108,7 @@ public class Agent extends CellContent
                 }
             }
         }
-
-        // try another random direction. agent can atleast move in 2 directions in the grid (if it is in one of the grid angles).
-        // so this recursive call won't force the app to stick in here.
-        // edit : well actually the app can be stuck in that recursive calls in some cases (too much agents arounds)
-        // todo : recursion has to be fixed, otherwise it may cause a stack over flow error (if no move is possible)
-//        if(wontBeAbleToMoveInGivenDirection)
-//        {
-//         //   this.moveRandomly();
-//        }
-        /*else*/ if(canMove)
+        if(canMove)
         {
             this.makeMove(newLine, newColumn);
         }
@@ -132,13 +128,6 @@ public class Agent extends CellContent
         // the new cell contains an item. we must place the agent on top.
         else if(this.environment.getCells()[newLine][newColumn].isCellContentAnItem())
         {
-            // todo : recursion has to be fixed, otherwise it may cause a stack over flow error (if no move is possible)
-            // if cell does already have an agent on top, we try again.
-//            if(this.environment.getCells()[newLine][newColumn].hasAgentOnTop())
-//            {
-////                this.moveRandomly();
-//            }
-            //else
             if(!this.environment.getCells()[newLine][newColumn].hasAgentOnTop())
             {
                 // moves
@@ -149,12 +138,6 @@ public class Agent extends CellContent
                 this.environment.getCells()[newLine][newColumn].placeAgentOnTop(this);
             }
         }
-        // an agent is located on newLine and newColumn. We try again another position.
-        // todo : recursion has to be fixed, otherwise it may cause a stack over flow error (if no move is possible)
-//        else if(this.environment.getCells()[newLine][newColumn].isCellContentAnAgent())
-//        {
-//            //this.moveRandomly();
-//        }
     }
 
     private void removeFromOldPosition()
@@ -220,6 +203,8 @@ public class Agent extends CellContent
         }
     }
 
+
+
     private double compute_f(ItemType itemType, boolean isPickUp)
     {
         List<Cell> nearbyCells = this.environment.getxNearbyCells(Agent.NB_MOVES, this.line, this.column);
@@ -232,7 +217,24 @@ public class Agent extends CellContent
                 cellsThatContainItemsOfGivenType++;
             }
         }
-        double f = cellsThatContainItemsOfGivenType/nearbyCells.size();
+        double f;
+        if(USE_ERROR)
+        {
+            long A = countLetters('A');
+            long B = countLetters('B');
+            if(itemType.equals(ItemType.A))
+            {
+                f = (A + B*ERROR_RATE)/AGENT_MEMORY_SIZE;
+            }
+            else
+            {
+                f = (B + A*ERROR_RATE)/AGENT_MEMORY_SIZE;
+            }
+        }
+        else
+        {
+             f = cellsThatContainItemsOfGivenType/nearbyCells.size();
+        }
         if(isPickUp)
         {
             return Math.pow( Grid.getkPlus()/(Grid.getkPlus() + f), 2);
@@ -241,5 +243,22 @@ public class Agent extends CellContent
         {
             return Math.pow(f/(Grid.getkMinus() + f), 2);
         }
+
+    }
+
+    private int countLetters(char letter)
+    {
+        int count = 0;
+        for(int i = 0; i < this.memory.length; i++)
+        {
+            if(this.memory[i] != null)
+            {
+                if(this.memory[i] == letter)
+                {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 }
