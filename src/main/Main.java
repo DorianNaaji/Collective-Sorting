@@ -20,11 +20,11 @@ public final class Main extends Application
     private static final int AGENTS = 20;
     private static final int ITEMS = 400;
     private static final double K_PLUS = 0.1;
-    private static final double K_MINUS = 5; // drop
-    private static final int NB_MOVES = 1; // i
+    private static final double K_MINUS = 0.3; //5; // drop
+    private static final int NB_MOVES = 2; // i
     private static final int AGENT_MEMORY_SIZE = 10; // t characters
     private static final int GUI_REFRESH_TIME = 0; // refresh rate in milliseconds
-    private static final boolean USE_ERROR = true; // error in item recognition
+    private static final boolean USE_ERROR = false; // error in item recognition
     private static final double ERROR_RATE =  0.01; // error rate
 
     private static final int MAX_ITER = 200000;
